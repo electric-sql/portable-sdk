@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+  release:
+    # this runs CI only when a release is created at first (and not when it is
+    # edited or published)
+    types: [created]
+
+  push:
+    branches: main
+
+  pull_request:
+    branches: main
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    env:
+       BUILDS: 3.12 3.13
+       SDKROOT: /opt/python-wasm-sdk
+       Py_GIL_DISABLED: false
+       wasisdk: true
+       gosdk: false
+       rustsdk: false
+       nimsdk: false
+       COPTS: -O2 -g3
+       EMFLAVOUR: 3.1.61
+
+    steps:
+    - uses: actions/checkout@v4.2.2
+
+    - name: Display CI properties
+      run: |
+        WD=$(pwd)
+        python3 -V
+        echo $WD
+        clang --version | head -n 1
+        echo
+        gcc --version | head -n 1
+        echo "Github env:"
+        env|grep GITHUB
+        echo "Android support:"
+        env|grep ANDROID
+
+    - name: Install dependencies and force sdk node
+      run: |
+        sudo apt-get update --fix-missing
+        # git clang libffi-dev libssl-dev zlib1g-dev pkg-config libncursesw5-dev python3-pip make
+        sudo apt-get install -y bash patchelf wget lz4
+        sudo rm -vf $(which node)
+
+    - name: Build sdk
+      run: |
+        chmod +x ./python-wasm-sdk.sh
+        bash -c "./python-wasm-sdk.sh"
+
+    - name: Upload sdk to Github artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        path: /tmp/sdk
+
+    - name: Upload sdk to Github Releases
+      if: github.event_name == 'release'
+      uses: svenstaro/upload-release-action@2.9.0
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: /tmp/sdk/*
+        file_glob: true
+        tag: ${{ github.ref }}

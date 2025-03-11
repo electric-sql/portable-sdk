@@ -1,0 +1,12 @@
+/keystore
+/devices
+/src
+/build
+/emsdk/
+/wasm32-tot-emscripten-shell.sh
+/python-wasm-plus.epj
+/.eric6project
+/demos
+/tests/code
+/scratchbook/
+/ATTIC
