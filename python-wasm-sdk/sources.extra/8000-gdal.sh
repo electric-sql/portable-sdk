@@ -88,7 +88,7 @@ int iconv_close(iconv_t);
 END
     fi
 
-    GDAL_PYTHON_BINDINGS_WITHOUT_NUMPY=1 emcmake cmake -j$(nproc) \
+    GDAL_PYTHON_BINDINGS_WITHOUT_NUMPY=1 emcmake cmake \
  -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_C_FLAGS=-m32 \
  -DCMAKE_BUILD_TYPE=Release \
  -DCMAKE_POSITION_INDEPENDENT_CODE=True -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX ${ROOT}/src/libgdal \

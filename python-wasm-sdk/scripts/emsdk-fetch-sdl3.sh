@@ -29,7 +29,7 @@ pushd ${SDL3_DIR}
 # "SDL", "SDL_image", "SDL_mixer", "SDL_ttf", "SDL_rtf", "SDL_net"
 
 
-if ( emcmake cmake -j$(nproc) -DEMSCRIPTEN=1 -DSDL_VIDEO_DRIVER_DUMMY=1 \
+if ( emcmake cmake -DEMSCRIPTEN=1 -DSDL_VIDEO_DRIVER_DUMMY=1 \
  -DCMAKE_INSTALL_PREFIX=${PREFIX} \
  -DSDL_STATIC_PIC=True \
  -DCMAKE_POSITION_INDEPENDENT_CODE=True \
@@ -38,13 +38,13 @@ then
     mkdir -p ${SDKROOT}/build/SDL3_image
     pushd ${SDKROOT}/build/SDL3_image
 
-        if emcmake cmake -j$(nproc) -DSDL3_DIR=${SDL3_DIR} \
+        if emcmake cmake -DSDL3_DIR=${SDL3_DIR} \
          -DCMAKE_INSTALL_PREFIX=${PREFIX} \
          -DSDL_STATIC_PIC=True \
          -DCMAKE_POSITION_INDEPENDENT_CODE=True \
          ../../src/SDL3_image-3.?.?
         then
-            emmake make install
+            emmake make -j$(nproc) install
         fi
 
     popd
@@ -53,13 +53,13 @@ then
     mkdir -p ${SDKROOT}/build/SDL3_ttf
     pushd ${SDKROOT}/build/SDL3_ttf
 
-        if emcmake cmake -j$(nproc) -DSDL3_DIR=${SDL3_DIR} \
+        if emcmake cmake -DSDL3_DIR=${SDL3_DIR} \
          -DCMAKE_INSTALL_PREFIX=${PREFIX} \
          -DSDL_STATIC_PIC=True \
          -DCMAKE_POSITION_INDEPENDENT_CODE=True \
          ../../src/SDL3_ttf-3.?.?
         then
-            EMCC_CFLAGS="-lz" emmake make install
+            EMCC_CFLAGS="-lz" emmake make -j$(nproc) install
         fi
 
     popd
