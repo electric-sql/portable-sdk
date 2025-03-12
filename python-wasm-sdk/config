@@ -61,7 +61,7 @@ export EMSDK_NOTTY=0
 export EMSDK_VERBOSE=0
 
 #temp fix for oom on CI (Error: Process completed with exit code 143.)
-export EMSDK_NUM_CORES=1
+export EMSDK_NUM_CORES=8
 
 # for shared modules
 export PYDK_PYTHON_HOST_PLATFORM=wasm32-${WASM_FLAVOUR}-emscripten
