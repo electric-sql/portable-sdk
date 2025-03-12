@@ -40,7 +40,7 @@ else
     mkdir -p $ROOT/build/assimp
     pushd $ROOT/build/assimp
     emcmake ${ROOT}/devices/$(arch)/usr/bin/cmake $ROOT/src/$ASSIMP -DCMAKE_INSTALL_PREFIX=$PREFIX -DBUILD_SHARED_LIBS=OFF
-    PYDK_CFLAGS="-Wno-nontrivial-memaccess" emmake make install
+    PYDK_CFLAGS="-Wno-nontrivial-memaccess" emmake make -j$(nproc) install
     popd
 
     cp -v ./src/assimpjs-wasm/assimp/code/Common/*.h ${PREFIX}/include/assimp/
