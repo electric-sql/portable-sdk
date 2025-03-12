@@ -68,7 +68,7 @@ END
                 cp -vf /data/git/python-wasm-sdk/libtool ./
                 chmod u-w+x /tmp/libtool /tmp/shtool libtool
 
-                PATH=/tmp:$PATH emmake make
+                PATH=/tmp:$PATH emmake make -j$(nproc)
 # LIBTOOL="'bash ${ROOT}/src/libuuid/libtool'" SHTOOL="'bash ${ROOT}/src/libuuid/shtool'"
                 sed -i 's|luuid|lossp-uuid|g' uuid.pc
                 cp uuid.pc ../../src/libuuid/

@@ -88,14 +88,14 @@ int iconv_close(iconv_t);
 END
     fi
 
-    GDAL_PYTHON_BINDINGS_WITHOUT_NUMPY=1 emcmake cmake \
+    GDAL_PYTHON_BINDINGS_WITHOUT_NUMPY=1 emcmake cmake -j$(nproc) \
  -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_C_FLAGS=-m32 \
  -DCMAKE_BUILD_TYPE=Release \
  -DCMAKE_POSITION_INDEPENDENT_CODE=True -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX ${ROOT}/src/libgdal \
      -DPROJ_DIR=${PREFIX} -DPROJ_LIBRARY=${PREFIX}/lib/libproj.a -DPROJ_INCLUDE_DIR=${PREFIX}/include \
      -DACCEPT_MISSING_SQLITE3_MUTEX_ALLOC:BOOL=ON -DBUILD_PYTHON_BINDINGS=OFF
 
-    emmake make -j 2
+    emmake make -j$(nproc)
     emmake make install
     mv ${ICONV_H}.save ${ICONV_H}
     popd

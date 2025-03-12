@@ -29,7 +29,7 @@ else
          --with-http=no --with-ftp=no --with-python=no --with-threads=no \
          --enable-shared=no --enable-static=yes \
          --without-icu
-        emmake make install
+        emmake make -j$(nproc) install
     popd
     popd
 fi

@@ -32,7 +32,7 @@ else
             [ -f ./common/Makefile.patched ] && rm ./common/Makefile.patched
             grep -v DDEFAULT_ICU_PLUGINS ./common/Makefile > ./common/Makefile.patched
             cat ./common/Makefile.patched > ./common/Makefile
-            emmake make
+            emmake make -j$(nproc)
             cat ./common/Makefile.patched > ./common/Makefile
             emmake make install
         fi

@@ -21,7 +21,7 @@ then
 else
     mkdir -p $ROOT/build/liblz4
     pushd $ROOT/build/liblz4
-    emcmake cmake ../../src/liblz4/build/cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
+    emcmake cmake ../../src/liblz4/build/cmake -DCMAKE_INSTALL_PREFIX=$PREFIX -j$(nproc) \
      && emmake make install
     popd
 fi

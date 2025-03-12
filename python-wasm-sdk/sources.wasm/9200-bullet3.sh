@@ -23,7 +23,7 @@ then
     mkdir -p $ROOT/build/bullet3
 
     pushd $ROOT/build/bullet3
-        emcmake cmake ../../src/bullet3 -DCMAKE_INSTALL_PREFIX=$PREFIX \
+        emcmake cmake -j$(nproc) ../../src/bullet3 -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DBUILD_SHARED_LIBS=NO -DUSE_DOUBLE_PRECISION=NO \
      -DBUILD_EXTRAS=NO -DBUILD_CPU_DEMOS=NO -DBUILD_PYBULLET=NO -DBUILD_ENET=NO \
      -DBUILD_CLSOCKET=NO -DUSE_GRAPHICAL_BENCHMARK=NO \

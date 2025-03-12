@@ -68,7 +68,7 @@ else
           --prefix="$PREFIX" --openssldir=/tmp/web_user
 
         sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile
-        emmake make build_generated libssl.a libcrypto.a
+        emmake make -j$(nproc) build_generated libssl.a libcrypto.a
         mkdir -p $PREFIX/include $PREFIX/lib/
         cp -r include/openssl $PREFIX/include/
         ln -s $PREFIX/include/openssl $EMSDK/upstream/emscripten/cache/sysroot/include/

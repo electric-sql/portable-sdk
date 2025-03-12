@@ -72,7 +72,7 @@ then
              $ROOT/src/${NCURSES}/configure $NCOPTS --disable-widec
 
             emmake make clean
-            emmake make 2>&1 > /dev/null || FIX
+            emmake make -j$(nproc) 2>&1 > /dev/null || FIX
             emmake make install 2>&1 > /dev/null || exit 76
 
         fi
@@ -102,7 +102,7 @@ then
              $ROOT/src/${NCURSES}/configure $NCOPTS --enable-ext-colors --enable-widec 2>&1 > /dev/null
 
             emmake make clean
-            emmake make 2>&1 > /dev/null || FIX
+            emmake make -j$(nproc) 2>&1 > /dev/null || FIX
             emmake make install 2>&1 > /dev/null || exit 106
         fi
     fi
