@@ -5,12 +5,12 @@ export CONFIG_ENV=true
 export LC_ALL=C
 export ROOT=${ROOT:-$(pwd)}
 export SDKROOT=${SDKROOT:-$ROOT}
-
+[ -f $SDKROOT/versions ] && source $SDKROOT/versions
 export PYTHONDONTWRITEBYTECODE=1
 export REBUILD=${REBUILD:-false}
 export CI=${CI:-false}
 
-export PYBUILD=${PYBUILD:-3.12}
+# PYBUILD comes from versions at runtime. must be specified at build.
 export PYMAJOR=$(echo -n $PYBUILD|cut -d. -f1)
 export PYMINOR=$(echo -n $PYBUILD|cut -d. -f2)
 
@@ -55,13 +55,14 @@ EXTRABINS="/usr/local/bin /opt/bin"
 
 # ============ emscripten ==============
 # stable==latest dev==tot
+# EMFLAVOUR comes from versions at runtime.
 export EMFLAVOUR=${EMFLAVOUR:latest}
 export EMSDK_QUIET=1
 export EMSDK_NOTTY=0
 export EMSDK_VERBOSE=0
 
 #temp fix for oom on CI (Error: Process completed with exit code 143.)
-export EMSDK_NUM_CORES=1
+export EMSDK_NUM_CORES=${EMSDK_NUM_CORES:-1}
 
 # for shared modules
 export PYDK_PYTHON_HOST_PLATFORM=wasm32-${WASM_FLAVOUR}-emscripten
