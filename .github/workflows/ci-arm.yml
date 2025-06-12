@@ -32,7 +32,7 @@ jobs:
         env|grep GITHUB
     - name: Build sdk
       run: |
-        docker run -e EMFLAVOUR=3.1.74 -e BUILDS=3.13 -v ./python-wasm-sdk:/workspace -v /tmp/fs/tmp/sdk/dist:/tmp/sdk/dist  --workdir=/workspace --name wasmsdk debian:stable ./python-wasm-sdk.sh
+         bash docker-run.sh
     - name: Upload sdk to Github Releases
       if: github.event_name == 'release'
       uses: svenstaro/upload-release-action@2.9.0
