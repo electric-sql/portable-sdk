@@ -44,16 +44,17 @@ fi
 
 if echo $PYBUILD |grep -q 14$
 then
-    wget -c https://www.python.org/ftp/python/3.14.0/Python-3.14.0a5.tar.xz
-    tar xf Python-3.14.0a5.tar.xz
-    ln -s Python-3.14.0a5 cpython${PYBUILD}
 
-    mkdir $ROOT/devices/emsdk/usr/lib $ROOT/devices/$(arch)/usr/lib -p
+    wget -c https://www.python.org/ftp/python/3.14.0/Python-3.14.0b3.tar.xz
+    tar xf Python-3.14.0b3.tar.xz
+    ln -s Python-3.14.0b3 cpython${PYBUILD}
+
+    mkdir $SDKROOT/devices/emsdk/usr/lib $SDKROOT/devices/$(arch)/usr/lib -p
 
     if ${Py_GIL_DISABLED:-false}
     then
-        ln -s $ROOT/devices/$(arch)/usr/lib/python3.14t  $ROOT/devices/$(arch)/usr/lib/python3.14
-        ln -s $ROOT/devices/emsdk/usr/lib/python3.14t  $ROOT/devices/emsdk/usr/lib/python3.14
+        ln -s $SDKROOT/devices/$(arch)/usr/lib/python3.14t  $SDKROOT/devices/$(arch)/usr/lib/python3.14
+        ln -s $SDKROOT/devices/emsdk/usr/lib/python3.14t  $SDKROOT/devices/emsdk/usr/lib/python3.14
     fi
 
     pushd cpython${PYBUILD}
@@ -79,31 +80,30 @@ fi
 
 if echo $PYBUILD |grep -q 13$
 then
-    if [ -d Python-3.13.3 ]
+    if [ -f cpython${PYBUILD}/configure ]
     then
         echo "  * Using local cpython sources"
     else
         pwd
         ls
         echo "  * fetching remote cpython sources"
-        wget -q -c https://www.python.org/ftp/python/3.13.3/Python-3.13.3.tar.xz
-        tar xf Python-3.13.3.tar.xz || exit 87
-    fi
+        wget -q -c  https://www.python.org/ftp/python/3.13.5/Python-3.13.5.tar.xz
+        tar xf Python-3.13.5.tar.xz || exit 90
+        ln -s Python-3.13.5 cpython${PYBUILD}
 
-    ln -s Python-3.13.3 cpython${PYBUILD}
 
-    sed -i 's|ProcessPoolExecutor = None|return True|g' cpython3.13/Lib/compileall.py
+        sed -i 's|ProcessPoolExecutor = None|return True|g' cpython3.13/Lib/compileall.py
 
-    mkdir $ROOT/devices/emsdk/usr/lib $ROOT/devices/$(arch)/usr/lib -p
+        mkdir $SDKROOT/devices/emsdk/usr/lib $SDKROOT/devices/$(arch)/usr/lib -p
 
-    if ${Py_GIL_DISABLED:-false}
-    then
-        ln -s $ROOT/devices/$(arch)/usr/lib/python3.13t  $ROOT/devices/$(arch)/usr/lib/python3.13
-        ln -s $ROOT/devices/emsdk/usr/lib/python3.13t  $ROOT/devices/emsdk/usr/lib/python3.13
-    fi
+        if ${Py_GIL_DISABLED:-false}
+        then
+            ln -s $SDKROOT/devices/$(arch)/usr/lib/python3.13t  $SDKROOT/devices/$(arch)/usr/lib/python3.13
+            ln -s $SDKROOT/devices/emsdk/usr/lib/python3.13t  $SDKROOT/devices/emsdk/usr/lib/python3.13
+        fi
 
-    pushd cpython${PYBUILD}
-        patch -p1 <<END
+        pushd cpython${PYBUILD}
+            patch -p1 <<END
 --- Python-3.13.0rc3/Objects/moduleobject.c	2024-10-01 04:03:08.000000000 +0200
 +++ Python-3.13.0rc3.wasm/Objects/moduleobject.c	2024-10-02 13:16:33.030387509 +0200
 @@ -442,8 +442,8 @@
@@ -119,23 +119,27 @@ then
      return 0;
 END
 
-    popd
+        popd
 
+    fi
 fi
 
 if echo $PYBUILD |grep -q 12$
 then
-    wget -q -c https://www.python.org/ftp/python/3.12.10/Python-3.12.10.tar.xz
-    tar xf Python-3.12.10.tar.xz
-    ln -s Python-3.12.10 cpython${PYBUILD}
+    wget -q -c https://www.python.org/ftp/python/3.12.11/Python-3.12.11.tar.xz
+    tar xf Python-3.12.11.tar.xz
+    ln -s Python-3.12.11 cpython${PYBUILD}
 fi
 
 
 if echo $PYBUILD | grep -q 11$
 then
-    wget -q -c https://www.python.org/ftp/python/3.11.12/Python-3.11.12.tar.xz
-    tar xf Python-3.11.12.tar.xz
-    ln -s Python-3.11.12 cpython${PYBUILD}
+#    wget -q -c https://www.python.org/ftp/python/3.11.12/Python-3.11.12.tar.xz
+#    tar xf Python-3.11.12.tar.xz
+#    ln -s Python-3.11.12 cpython${PYBUILD}
+    wget -q -c https://www.python.org/ftp/python/3.11.13/Python-3.11.13.tar.xz
+    tar xf Python-3.11.13.tar.xz
+    ln -s Python-3.11.13 cpython${PYBUILD}
 fi
 
 popd
@@ -145,7 +149,7 @@ popd
 if [ -f support/__EMSCRIPTEN__.patches/${PYBUILD}-host.diff ]
 then
     pushd src/cpython${PYBUILD}
-    patch -p1 < ../../support/__EMSCRIPTEN__.patches/${PYBUILD}-host.diff
+        patch -p1 < ../../support/__EMSCRIPTEN__.patches/${PYBUILD}-host.diff
     popd
 fi
 

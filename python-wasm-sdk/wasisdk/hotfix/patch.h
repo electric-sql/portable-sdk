@@ -1,24 +1,52 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <limits.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <stdint.h>
+#include <stdio.h> // for FILE
+#include <unistd.h> // for uid_t, pid_t
 
-#define P_tmpdir "/tmp"
-#define	LOCK_EX	2
-#define	LOCK_NB	4
+#define SCOPE static
 
-static FILE *
+SCOPE FILE *
 popen(const char *command, const char *type){
     return NULL;
 }
 
-static char *
+SCOPE int
+pclose(FILE *stream){
+    (void)stream;
+    return 0;
+}
+
+SCOPE gid_t
+getegid(void) {
+	return 99;
+}
+
+SCOPE uid_t
+geteuid(void) {
+    return 1000;
+}
+
+#include <sys/types.h> // for mode_t
+SCOPE mode_t
+umask(mode_t mask) {
+	return 18;
+}
+
+
+#include <sys/stat.h>
+
+SCOPE int
+sdk_chmod(const char * path, int mode_t) {
+    return 0;
+}
+#define chmod(path, mode) sdk_chmod(path, mode)
+
+
+
+#include <errno.h>  // for E*
+#include <sys/stat.h> // for stat
+#include <string.h> // for strlen
+
+#include <time.h> // for clock_gettime
+SCOPE char *
 __randname(char *tmpl)
 {
 	int i;
@@ -33,7 +61,8 @@ __randname(char *tmpl)
 	return tmpl;
 }
 
-static char *
+
+SCOPE char *
 mktemp(char *tmpl)
 {
 	size_t l = strlen(tmpl);
@@ -59,107 +88,46 @@ mktemp(char *tmpl)
 	return tmpl;
 }
 
-static int
+SCOPE int
 mkstemp(char *tmpl) {
     FILE *ftemp = fopen(mktemp(tmpl),"w");
     return fileno(ftemp);
 }
 
 
-#if 0
+// errno.h
+#define EHOSTDOWN 117		/* Host is down */
 
-static char *
-tempnam(const char *dir, const char *pfx)
-{
-	char s[PATH_MAX];
-	size_t l, dl, pl;
 
-	if (!dir) dir = P_tmpdir;
-	if (!pfx) pfx = "temp";
+// sys/socket.h
+#define AF_UNIX 1  // PF_LOCAL
 
-	dl = strlen(dir);
-	pl = strlen(pfx);
-	l = dl + 1 + pl + 1 + 6;
 
-	if (l >= PATH_MAX) {
-		errno = ENAMETOOLONG;
-		return 0;
-	}
 
-	memcpy(s, dir, dl);
-	s[dl] = '/';
-	memcpy(s+dl+1, pfx, pl);
-	s[dl+1+pl] = '_';
-	s[l] = 0;
+// pwd.h
 
-	__randname(s+l-6);
-    return strdup(s);
+SCOPE int
+// getpwuid_r(uid_t uid, struct passwd *pwd, char *buf, size_t buflen, struct passwd **result) {
+sdk_getpwuid_r(uid_t uid, void *pwd, char *buf, size_t buflen, void **result) {
+  return ENOENT;
 }
-
-#else
-
-static char *
-tempnam (const char *dir, const char *pfx)
-{
-    char buf[FILENAME_MAX];
-    int all;
-    char *ptr;
-    int	dirlen = strlen(dir);
-    if (dirlen>=FILENAME_MAX)
-    	return NULL;
-
-    memcpy(buf,dir,FILENAME_MAX);
-    buf[dirlen] = '/';
+#define getpwuid_r(uid, pwd, buf, buflen, result) sdk_getpwuid_r(uid, pwd, buf, buflen, result)
 
 
-    if (pfx) {
-        all = dirlen + 1 + strlen(pfx);
-        if (all>=FILENAME_MAX)
-    	    return NULL;
-        memcpy(buf+dirlen+1, pfx, FILENAME_MAX - all);
-    } else {
-        all = dirlen + 1;
-    }
-
-    memcpy(buf+all, "XXXXXX", 6	);
-    all += 6 ;
-    buf[all]= 0;
-    ptr =	(char *)malloc(all);
-    memcpy(ptr,	buf, all);
-    return mktemp(ptr);
-}
-
-#endif
-
-static int
-lockf(int fd, int cmd, off_t len) {
+SCOPE int
+sdk_kill(pid_t pid, int sig) {
+	fprintf(stderr, "not killing pid %d with %d\r\n", pid, sig);
     return 0;
 }
-
-static int
-pclose(FILE *stream){
-    (void)stream;
-    return 0;
-}
+#define kill(pid, sig) sdk_kill(pid, sig)
 
 
-static pid_t
-getpid(void) {
-    char *val = getenv("WASIX_PID");
-    char *end = val + strlen(val);
-    if (val && val[0] != '\0') {
-	return (pid_t)strtol(val, &end, 10);
-    }
-#ifdef _WASIX_PID
-    return (pid_t)(_WASIX_PID);
-#else
-    return 66600;
-#endif
-}
 
 
-static pid_t
-getppid(void) {
+#include <stdlib.h> // for strtol
+
+SCOPE pid_t
+sdk_getppid(void) {
     char *val = getenv("WASIX_PPID");
     char *end = val + strlen(val);
     if (val && val[0] != '\0') {
@@ -172,144 +140,169 @@ getppid(void) {
 #endif
 }
 
+#define getppid() sdk_getppid()
 
-static gid_t
-getegid(void) {
-	return 99;
+
+SCOPE FILE *
+sdk_tmpfile(void) {
+    return fopen(mktemp("/tmp/tmpfile"),"w");
 }
-
-static uid_t
-geteuid(void) {
-    return 1000;
-}
-
-static mode_t
-umask(mode_t mask) {
-	return 18;
-}
-
-
-// errno.h
-#define EHOSTDOWN 117		/* Host is down */
-
-
-// pwd.h
-
-static int
-//getpwuid_r(uid_t uid, struct passwd *pwd, char *buf, size_t buflen, struct passwd **result) {
-getpwuid_r(uid_t uid, void *pwd, char *buf, size_t buflen, void **result) {
-  return ENOENT;
-}
-
-
-static int
-kill(pid_t pid, int sig) {
-	puts("nokill");
-    return 0;
-}
-
-
-// socket.h
-#define SO_KEEPALIVE    9
-#define SO_REUSEADDR    2
-
-typedef uint32_t socklen_t;
-
-static int
-bind(int socket, void *address, socklen_t address_len) {
-	return 0;
-}
+#define tmpfile() sdk_tmpfile()
 
 
 
-#if defined(PYDK)
 
-    extern ssize_t recvfrom(int socket, void *buffer, size_t length, int flags, void *address, socklen_t *address_len);
-    extern int socket(int domain, int type, int protocol);
-    extern ssize_t sendto(int socket, const void *message, size_t length, int flags, void *dest_addr, socklen_t dest_len);
-    extern int connect(int socket, void *address, socklen_t address_len);
+
+
+
+// *********************************************************************************************
+// *********************************************************************************************
+// *********************************************************************************************
+// *********************************************************************************************
+
+
+
+#ifndef __wasilibc_use_wasip2
+#   define __wasi__p1
+
+
+#   include <limits.h>
+#   include <string.h>
+#   include <stdlib.h>
+#   include <stdint.h>
+
+#   define P_tmpdir "/tmp"
+#   define	LOCK_EX	2
+#   define	LOCK_NB	4
+
+    SCOPE char *
+    tempnam (const char *dir, const char *pfx)
+    {
+        char buf[FILENAME_MAX];
+        int all;
+        char *ptr;
+        int	dirlen = strlen(dir);
+        if (dirlen>=FILENAME_MAX)
+        	return NULL;
+
+        memcpy(buf,dir,FILENAME_MAX);
+        buf[dirlen] = '/';
+
+
+        if (pfx) {
+            all = dirlen + 1 + strlen(pfx);
+            if (all>=FILENAME_MAX)
+        	    return NULL;
+            memcpy(buf+dirlen+1, pfx, FILENAME_MAX - all);
+        } else {
+            all = dirlen + 1;
+        }
+
+        memcpy(buf+all, "XXXXXX", 6	);
+        all += 6 ;
+        buf[all]= 0;
+        ptr =	(char *)malloc(all);
+        memcpy(ptr,	buf, all);
+        return mktemp(ptr);
+    }
+
+
+    SCOPE int
+    lockf(int fd, int cmd, off_t len) {
+        return 0;
+    }
+
+
+
+// override
+    SCOPE pid_t
+    sdk_getpid(void) {
+        char *val = getenv("WASIX_PID");
+        char *end = val + strlen(val);
+        if (val && val[0] != '\0') {
+	        return (pid_t)strtol(val, &end, 10);
+        }
+        return (pid_t)42;
+    }
+#   define getpid() sdk_getpid()
+
+    SCOPE int
+    sdk_getrusage(int who, void *usage) {
+        return -1;
+    }
+#   define getrusage(who, usage) sdk_getrusage(who, usage)
+
+
+#   include <wasi/api.h>
+
+    SCOPE void sdk_exit(int ec) {
+        printf("EXIT(%d)\r\n", ec);
+        const char * base = 0 ;
+        memset(base, ec, 1);
+        // abort();
+        // proc_exit(ec);
+        __wasi_proc_exit(ec);
+
+    }
+#   define exit(ec) sdk_exit(ec)
+
+
+#   include <stdio.h>
+#   include <unistd.h>
+#   include <errno.h>
+
+    // defined in ../../src/port/libpgport.a(qsort.o)
+    // defined in ../../src/port/libpgport.a(snprintf.o)
+
+    SCOPE long sdk_fdtell(int fd) {
+        __wasi_fd_t wasi_fd = (__wasi_fd_t)fd;
+        __wasi_filesize_t position = 0;
+
+        // The WASI equivalent of lseek — seek to current position with offset 0
+        __wasi_errno_t err = __wasi_fd_seek(
+            wasi_fd,
+            0,
+            __WASI_WHENCE_CUR,
+            &position
+        );
+
+        if (err != __WASI_ERRNO_SUCCESS) {
+            errno = EIO;
+            return -1L;
+        }
+
+        return (long)position;
+    }
+
+    SCOPE long sdk_ftell(FILE *stream) {
+        return sdk_fdtell(fileno(stream));
+    }
+#   define ftell(stream) sdk_ftell(stream)
+
+
+
+// setjmp
+
+// override
+#   define __wasm_exception_handling__
+#   include <setjmp.h>
+    SCOPE int sdk_sigsetjmp(sigjmp_buf env, int savesigs) {
+        return 0;
+    }
+#   define sigsetjmp(env, savesigs) sdk_sigsetjmp(env, savesigs)
+    SCOPE void sdk_siglongjmp(sigjmp_buf env, int val) {
+        puts("# 217:" __FILE__ ": siglongjmp STUB");
+    }
+#   define siglongjmp(env, val) sdk_siglongjmp(env, val)
+
+
+#   if defined(PYDK)
+#       include "sdk_socket.c"
+#   endif
+
+
 
 
 #else
-
-static int
-connect(int socket, void *address, socklen_t address_len) {
-	return 0;
-}
-
-static ssize_t
-sendto(int socket, const void *message, size_t length, int flags, void *dest_addr, socklen_t dest_len) {
-	return 0;
-}
-static int
-fd_sock = 100;
-
-static ssize_t
-recvfrom(int socket, void *buffer, size_t length, int flags, void *address, socklen_t *address_len) {
-	return 0;
-}
-
-static int
-socket(int domain, int type, int protocol) {
-    return fd_sock++;
-}
-
-#endif
-
-static int
-setsockopt(int socket, int level, int option_name, const void *option_value, socklen_t option_len) {
-	return 0;
-}
-
-
-
-
-
-
-
-
-
-
-#define SOCK_RAW 3
-#define SO_ERROR 0x1007
-
-static struct servent *
-getservbyname(const char *name, const char *proto) {
-    return NULL;
-}
-
-static struct servent *
-getservbyport(int port, const char *proto) {
-    return NULL;
-}
-
-static struct protoent *
-getprotobyname(const char *name) {
-    return NULL;
-}
-static struct hostent *
-gethostbyname(const char *name){
-    return NULL;
-}
-
-static struct hostent *
-gethostbyaddr(const void *addr, socklen_t len, int type) {
-    return NULL;
-}
-
-static struct protoent *
-getprotoent(void) {
-    return NULL;
-}
-
-static const char cc_hstrerror[] = "hstrerror";
-
-static int * __h_errno_location(void){
-    return NULL;
-}
-
-static const char *
-hstrerror(int ecode)
-{
-    return &cc_hstrerror[0];
-}
+#   define __wasi__p2
+#endif // __wasi__p2

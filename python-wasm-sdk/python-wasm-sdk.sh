@@ -34,9 +34,9 @@ which strip || cp /bin/true /usr/bin/strip
 pause () {
     if ${CI}
     then
-        echo -n
+        echo "$0:$1"
     else
-        echo "<paused> press enter ..."
+        echo "<paused at $1> press enter ..."
         read
     fi
 }
@@ -61,7 +61,7 @@ else
         export DISTRIB_ID=$($SYS_PYTHON -E -c "print(__import__('sysconfig').get_config_var('HOST_GNU_TYPE'))")
         export PLATFORM=$($SYS_PYTHON -E -c "print(__import__('sys').platform)")
         echo no /etc/lsb-release found, please identify platform $PLATFORM : \"${DISTRIB_ID}-${DISTRIB_RELEASE}\" or hit enter to continue
-        pause
+        pause $LINENO
     fi
 fi
 
@@ -178,30 +178,30 @@ do
             cd ${SDKROOT}
             . scripts/cpython-fetch.sh
 
-            pause
+            pause $LINENO
 
             cd ${SDKROOT}
 
             # generic wasm patchwork
             . support/__EMSCRIPTEN__.sh
 
-            pause
+            pause $LINENO
 
             . scripts/cpython-build-host.sh 2>&1 >/tmp/python-wasm-sdk.log
 
-            pause
+            pause $LINENO
 
             if [ -f $HPY ]
             then
-                pause
+                pause $LINENO
             else
                 cat /tmp/python-wasm-sdk.log
-                exit 192
+                exit $LINENO
             fi
 
             . scripts/cpython-build-host-deps.sh > /dev/null
 
-            pause
+            pause $LINENO
 
         fi
 
@@ -261,29 +261,10 @@ END
             else
                 if ./scripts/cpython-build-${TARGET}-deps.sh
                 then
-#                    if $CI
-                    if false
-                    then
-                        pushd /
-                        tar  \
- --exclude=${SDKROOT}/devices/*/usr/bin/*3.1* \
- --exclude=${SDKROOT}/devices/*/usr/lib/python3.1? \
- --exclude=${SDKROOT}/devices/*/usr/include/python3.1? \
- --exclude=${SDKROOT}/config \
- --exclude=${SDKROOT}/python-was?-sdk.sh \
- --exclude=${SDKROOT}/python3-was? \
- --exclude=${SDKROOT}/scripts/* \
- --exclude=${SDKROOT}/sources.* \
- --exclude=${SDKROOT}/build \
- --exclude=${SDKROOT}/src \
- -cpR $SDKROOT > /tmp/emsdk.tar
-
-                        date "+%d-%m-%4Y" > /tmp/sdk/emsdk.version
-                        popd
-                    fi
+                    date "+%d-%m-%4Y" > /tmp/sdk/emsdk.timestamp
                 else
                     echo " cpython-build-emsdk-deps failed" 1>&2
-                    exit 213
+                    exit $LINENO
                 fi
             fi
 
@@ -292,7 +273,7 @@ END
             then
 
                 echo " --------- adding some usefull pkg ${PYBUILD} ${CIVER} ---------" 1>&2
-                ./scripts/cpython-build-${TARGET}-prebuilt.sh || exit 223
+                ./scripts/cpython-build-${TARGET}-prebuilt.sh || exit $LINENO
 
 
                 # experimental stuff
@@ -313,7 +294,7 @@ END
 
             else
                 echo " cpython-build-emsdk failed" 1>&2
-                exit 239
+                exit $LINENO
             fi
 
         fi
@@ -327,7 +308,7 @@ END
             export TARGET=wasi
 
             mkdir -p src build ${SDKROOT}/devices/wasisdk ${SDKROOT}/prebuilt/wasisdk
-            if $DOCKER
+            if [ -d $PREBUILT ]
             then
                 # unpack wasi sdk  (common)
                 tar xf $PREBUILT/wasi-sdk-25.tar.xz
@@ -383,7 +364,7 @@ END
 
     else
         echo "cd failed"  1>&2
-        exit 208
+        exit $LINENO
     fi
 done
 

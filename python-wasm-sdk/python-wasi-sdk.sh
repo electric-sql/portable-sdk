@@ -1,12 +1,21 @@
 #!/bin/bash
 reset
-
+export DOCKER=false
+export PREBUILT=$(pwd)/prebuilt
 if [ $UID -ne 0 ]; then
-    echo "not UID 0, assuming not docker"
+    echo "not UID 0, assuming no docker/proot"
 else
-    echo "UID 0, assuming docker debian:stable"
-    apt-get update && apt-get --yes install build-essential clang autoconf wget curl lz4 lsb-release zlib1g-dev libssl-dev git
+    if [ -f /alpine ]
+    then
+        echo "UID 0, with alpine proot"
+
+    else
+        echo "UID 0, assuming docker debian:stable"
+        apt-get update && apt-get --yes install build-essential clang autoconf wget curl lz4 lsb-release zlib1g-dev libssl-dev git
+        export DOCKER=true
+    fi
 fi
+
 
 [ -f ../config ] && . ../config
 
@@ -19,6 +28,19 @@ then
 else
     SYS_PYTHON=$(which python)
 fi
+
+which strip || cp /bin/true /usr/bin/strip
+
+pause () {
+    if ${CI}
+    then
+        echo "$0:$1"
+    else
+        echo "<paused at $1> press enter ..."
+        read
+    fi
+}
+
 
 DISTRIB_RELEASE=${DISTRIB_RELEASE:-any}
 
@@ -39,7 +61,7 @@ else
         export DISTRIB_ID=$($SYS_PYTHON -E -c "print(__import__('sysconfig').get_config_var('HOST_GNU_TYPE'))")
         export PLATFORM=$($SYS_PYTHON -E -c "print(__import__('sys').platform)")
         echo no /etc/lsb-release found, please identify platform $PLATFORM : \"${DISTRIB_ID}-${DISTRIB_RELEASE}\" or hit enter to continue
-        read
+        pause $LINENO
     fi
 fi
 
@@ -48,7 +70,7 @@ export DISTRIB="${DISTRIB_ID}-${DISTRIB_RELEASE}"
 export SDKROOT=${SDKROOT:-/tmp/sdk}
 
 # default is behave like a CI
-export CI={CI:-true}
+export CI=${CI:-true}
 
 # maybe have ci flavours later
 export CIVER=${CIVER:-$DISTRIB}
@@ -156,23 +178,36 @@ do
             cd ${SDKROOT}
             . scripts/cpython-fetch.sh
 
+            pause $LINENO
+
             cd ${SDKROOT}
 
             # generic wasm patchwork
             . support/__EMSCRIPTEN__.sh
 
+            pause $LINENO
+
             . scripts/cpython-build-host.sh 2>&1 >/tmp/python-wasm-sdk.log
 
-            [ -f $HPY ] || exit 100
+            pause $LINENO
+
+            if [ -f $HPY ]
+            then
+                pause $LINENO
+            else
+                cat /tmp/python-wasm-sdk.log
+                exit $LINENO
+            fi
 
             . scripts/cpython-build-host-deps.sh > /dev/null
 
+            pause $LINENO
+
         fi
 
-        [ -f $HPY ] || exit 106
 
 
-        cat > /opt/python-wasm-sdk/devices/$(arch)/usr/bin/py <<END
+        cat > ${SDKROOT}/devices/$(arch)/usr/bin/py <<END
 #!/bin/bash
 export XDG_SESSION_TYPE=x11
 export SDKROOT=${SDKROOT}
@@ -183,20 +218,20 @@ export PATH=${SDKROOT}/devices/$(arch)/usr/bin:\$PATH
 export LD_LIBRARY_PATH=${SDKROOT}/devices/$(arch)/usr/lib:${SDKROOT}/devices/$(arch)/usr/lib64:$LD_LIBRARY_PATH
 ${SDKROOT}/devices/$(arch)/usr/bin/python\${PYBUILD:-$PYBUILD} \$@
 END
-        chmod +x /opt/python-wasm-sdk/devices/$(arch)/usr/bin/py
+        chmod +x ${SDKROOT}/devices/$(arch)/usr/bin/py
 
         # always install wasmtime because wasm-objdump needs it.
-        if [ -f ${SDKROOT}/devices/$(arch)/usr/bin/wastime ]
+        if [ -f ${SDKROOT}/devices/$(arch)/usr/bin/wasmtime ]
         then
             echo "keeping installed wasmtime and wasi binaries"
         else
             # wget https://github.com/bytecodealliance/wasmtime/releases/download/v22.0.0/wasmtime-v22.0.0-x86_64-linux.tar.xz
             # wget https://github.com/bytecodealliance/wasmtime/releases/download/v26.0.1/wasmtime-v26.0.1-$(arch)-$(PLATFORM).tar.xz
             # wget https://github.com/bytecodealliance/wasmtime/releases/download/v27.0.0/wasmtime-v27.0.0-$(arch)-${PLATFORM}.tar.xz
-            #
+            # wget https://github.com/bytecodealliance/wasmtime/releases/download/v29.0.1/wasmtime-v29.0.1-$(arch)-${PLATFORM}.tar.xz
 # TODO: window only has a zip archive, better use wasmtime-py instead.
 
-            wget https://github.com/bytecodealliance/wasmtime/releases/download/v29.0.1/wasmtime-v29.0.1-$(arch)-${PLATFORM}.tar.xz \
+            wget https://github.com/bytecodealliance/wasmtime/releases/download/v33.0.0/wasmtime-v33.0.0-$(arch)-${PLATFORM}.tar.xz \
              -O-|xzcat|tar xfv -
             mv -vf $(find wasmtime*|grep /wasmtime$) ${SDKROOT}/devices/$(arch)/usr/bin
         fi
@@ -208,29 +243,6 @@ END
             export TARGET=emsdk
 
             mkdir -p src build ${SDKROOT}/devices/${TARGET} ${SDKROOT}/prebuilt/${TARGET}
-
-            if [ -f /tmp/emsdk.tar ]
-            then
-                echo "
-
-
-            ===========================================================================
-
-            Using emsdk cache from :
-
-            $(cat /tmp/sdk/emsdk.version)
-
-
-            ===========================================================================
-
-
-
-"
-                pushd /
-                tar xfp /tmp/emsdk.tar
-                mkdir -p ${SDKROOT}/src ${SDKROOT}/build
-                popd
-            fi
 
             # use ./ or emsdk will pollute env
             if echo $EMFLAVOUR|grep -q ^3\\.
@@ -249,29 +261,10 @@ END
             else
                 if ./scripts/cpython-build-${TARGET}-deps.sh
                 then
-#                    if $CI
-                    if false
-                    then
-                        pushd /
-                        tar  \
- --exclude=${SDKROOT}/devices/*/usr/bin/*3.1* \
- --exclude=${SDKROOT}/devices/*/usr/lib/python3.1? \
- --exclude=${SDKROOT}/devices/*/usr/include/python3.1? \
- --exclude=${SDKROOT}/config \
- --exclude=${SDKROOT}/python-was?-sdk.sh \
- --exclude=${SDKROOT}/python3-was? \
- --exclude=${SDKROOT}/scripts/* \
- --exclude=${SDKROOT}/sources.* \
- --exclude=${SDKROOT}/build \
- --exclude=${SDKROOT}/src \
- -cpR $SDKROOT > /tmp/emsdk.tar
-
-                        date "+%d-%m-%4Y" > /tmp/sdk/emsdk.version
-                        popd
-                    fi
+                    date "+%d-%m-%4Y" > /tmp/sdk/emsdk.timestamp
                 else
                     echo " cpython-build-emsdk-deps failed" 1>&2
-                    exit 213
+                    exit $LINENO
                 fi
             fi
 
@@ -280,7 +273,7 @@ END
             then
 
                 echo " --------- adding some usefull pkg ${PYBUILD} ${CIVER} ---------" 1>&2
-                ./scripts/cpython-build-${TARGET}-prebuilt.sh || exit 223
+                ./scripts/cpython-build-${TARGET}-prebuilt.sh || exit $LINENO
 
 
                 # experimental stuff
@@ -301,7 +294,7 @@ END
 
             else
                 echo " cpython-build-emsdk failed" 1>&2
-                exit 239
+                exit $LINENO
             fi
 
         fi
@@ -315,21 +308,27 @@ END
             export TARGET=wasi
 
             mkdir -p src build ${SDKROOT}/devices/wasisdk ${SDKROOT}/prebuilt/wasisdk
+            if [ -d $PREBUILT ]
+            then
+                # unpack wasi sdk  (common)
+                tar xf $PREBUILT/wasi-sdk-25.tar.xz
+                # unpack wasi sdk ( binary )
+                tar xf $PREBUILT/wasi-sdk-25.0-$(arch)-linux.tar.xz
+            else
+                # do not source to protect env
+                ./scripts/cpython-build-wasisdk.sh
 
-            # do not source to protect env
-            ./scripts/cpython-build-wasisdk.sh
+                > ${SDKROOT}/python3-${TARGET}
 
-            > ${SDKROOT}/python3-${TARGET}
+                > ${SDKROOT}/wasm32-${TARGET}-shell.sh
 
-# ROOT=/opt/python-wasm-sdk SDKROOT=/opt/python-wasm-sdk
-# HOST_PREFIX=/opt/python-wasm-sdk/devices/$(arch)/usr
-            > ${SDKROOT}/wasm32-${TARGET}-shell.sh
+                CPU=wasm32
+                CPU=$CPU TARGET=$TARGET PYDK_PYTHON_HOST_PLATFORM=${CPU}-${TARGET} \
+                 PYDK_SYSCONFIG_PLATFORM=${CPU}-${TARGET} \
+                 PREFIX=${SDKROOT}/devices/${TARGET}sdk/usr \
+                 ./scripts/make-shells.sh
 
-            CPU=wasm32
-            CPU=$CPU TARGET=$TARGET PYDK_PYTHON_HOST_PLATFORM=${CPU}-${TARGET} \
-             PYDK_SYSCONFIG_PLATFORM=${CPU}-${TARGET} \
-             PREFIX=/opt/python-wasm-sdk/devices/${TARGET}sdk/usr \
-             ./scripts/make-shells.sh
+            fi
 
             cat >> $ROOT/${CPU}-${TARGET}-shell.sh <<END
 #!/bin/bash
@@ -365,7 +364,7 @@ END
 
     else
         echo "cd failed"  1>&2
-        exit 208
+        exit $LINENO
     fi
 done
 
