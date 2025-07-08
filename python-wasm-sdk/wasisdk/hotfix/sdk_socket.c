@@ -236,7 +236,7 @@ sdk_sock_flush() {
 
     // limit inf loops
     if (watchdog++ > 32) {
-        puts("# 231: sdk_sock_flush : busy looping ? exit(238) !\r\n"); exit(__LINE__);
+	exit(0);
     }
 }
 
