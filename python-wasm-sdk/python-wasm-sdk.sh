@@ -307,6 +307,7 @@ END
             cd ${SDKROOT}
 
             export TARGET=wasi
+            export CPU=wasm32
 
             mkdir -p src build ${SDKROOT}/devices/wasisdk ${SDKROOT}/prebuilt/wasisdk
             if [ -d $PREBUILT ]
@@ -323,7 +324,6 @@ END
 
                 > ${SDKROOT}/wasm32-${TARGET}-shell.sh
 
-                CPU=wasm32
                 CPU=$CPU TARGET=$TARGET PYDK_PYTHON_HOST_PLATFORM=${CPU}-${TARGET} \
                  PYDK_SYSCONFIG_PLATFORM=${CPU}-${TARGET} \
                  PREFIX=${SDKROOT}/devices/${TARGET}sdk/usr \
