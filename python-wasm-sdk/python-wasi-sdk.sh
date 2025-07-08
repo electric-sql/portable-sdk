@@ -11,8 +11,8 @@ else
 
     else
         echo "UID 0, assuming docker debian:12"
-        apt-get update && apt-get --yes install build-essential clang autoconf wget curl lz4 lsb-release zlib1g-dev libssl-dev \
-          git bison flex xz-utils
+        apt-get update && apt-get --yes install build-essential clang autoconf pkg-config lsb-release zlib1g-dev libssl-dev \
+          git wget curl lz4 bison flex xz-utils
         export DOCKER=true
     fi
 fi
