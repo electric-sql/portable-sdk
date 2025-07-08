@@ -342,7 +342,7 @@ parse_git_branch() {
 export PS1="[PyDK:${TARGET}] \[\e[32m\]\w \[\e[91m\]\$(parse_git_branch)\[\e[00m\]\$ "
 
 END
-            chmod +x ${SDKROOT}/python3-${TARGET} ${SDKROOT}/wasm32-${TARGET}-shell.sh
+            chmod +x ${SDKROOT}/python3-${TARGET} ${SDKROOT}/${CPU}-${TARGET}-shell.sh
 
         fi
 
