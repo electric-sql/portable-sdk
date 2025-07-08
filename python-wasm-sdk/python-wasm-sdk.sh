@@ -42,6 +42,8 @@ pause () {
     fi
 }
 
+# sane default
+PLATFORM=linux
 
 DISTRIB_RELEASE=${DISTRIB_RELEASE:-any}
 
@@ -49,7 +51,7 @@ DISTRIB_RELEASE=${DISTRIB_RELEASE:-any}
 if [ -f /etc/lsb-release ]
 then
     . /etc/lsb-release
-    export PLATFORM=linux
+    PLATFORM=linux
 else
     # is it Debian
     if [ -f /etc/os-release ]
@@ -67,7 +69,7 @@ else
 fi
 
 export DISTRIB="${DISTRIB_ID}-${DISTRIB_RELEASE}"
-
+export PLATFORM
 export SDKROOT=${SDKROOT:-/tmp/sdk}
 
 # default is behave like a CI
