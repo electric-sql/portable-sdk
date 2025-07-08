@@ -222,7 +222,7 @@ sdk_sock_flush() {
             rename(PGS_ILOCK, PGS_IN);
             sched_yield();
 
-// freopen does not work on wasi/emscripte
+// freopen does not work on wasi/emscripten
 // freopen(PGS_ILOCK, "w", fd_FILE);
             fd_FILE = fopen(PGS_ILOCK, "w");
             fd_out = fileno(fd_FILE);

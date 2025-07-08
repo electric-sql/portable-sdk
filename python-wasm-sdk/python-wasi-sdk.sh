@@ -10,8 +10,9 @@ else
         echo "UID 0, with alpine proot"
 
     else
-        echo "UID 0, assuming docker debian:stable"
-        apt-get update && apt-get --yes install build-essential clang autoconf wget curl lz4 lsb-release zlib1g-dev libssl-dev git
+        echo "UID 0, assuming docker debian:12"
+        apt-get update && apt-get --yes install build-essential clang autoconf wget curl lz4 lsb-release zlib1g-dev libssl-dev \
+          git bison flex xzcat
         export DOCKER=true
     fi
 fi
