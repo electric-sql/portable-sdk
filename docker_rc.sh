@@ -3,6 +3,8 @@ WASI_COMMON="https://github.com/electric-sql/portable-sdk/raw/refs/heads/main/pr
 
 echo SDK prepare
 pushd /
+    # this is minimum required to **use** sdk on docker/debian 12, not build it
+    apt-get update && apt-get --yes install git wget curl lz4 xz-utils bison flex pkg-config autoconf make
 
 	if [ -d $SDKROOT/wasisdk/upstream ]
 	then
@@ -17,7 +19,7 @@ pushd /
 		echo "wasi sdk $(arch) support is installed"
 	else
 		pushd $SDKROOT/wasisdk
-		if arch|grep -q  aarch64
+		if arch|grep -q aarch64
 		then
 			wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-25/wasi-sdk-25.0-arm64-linux.tar.gz -O/tmp/sdk.tar.gz
 		else

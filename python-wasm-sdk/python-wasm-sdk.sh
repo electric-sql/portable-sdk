@@ -2,6 +2,8 @@
 reset
 export DOCKER=false
 export PREBUILT=$(pwd)/prebuilt
+export SDKROOT=${SDKROOT:-/tmp/sdk}
+
 if [ $UID -ne 0 ]; then
     echo "not UID 0, assuming no docker/proot"
 else
@@ -11,8 +13,8 @@ else
 
     else
         echo "UID 0, assuming docker debian:12"
-        apt-get update && apt-get --yes install build-essential clang autoconf pkg-config lsb-release zlib1g-dev libssl-dev \
-          git wget curl lz4 bison flex xz-utils
+        apt-get update && apt-get --yes install build-essential clang lsb-release zlib1g-dev lzma-dev libssl-dev \
+          git wget curl lz4 xz-utils bison flex pkg-config autoconf make
         export DOCKER=true
     fi
 fi
@@ -70,7 +72,7 @@ fi
 
 export DISTRIB="${DISTRIB_ID}-${DISTRIB_RELEASE}"
 export PLATFORM
-export SDKROOT=${SDKROOT:-/tmp/sdk}
+
 
 # default is behave like a CI
 export CI=${CI:-true}

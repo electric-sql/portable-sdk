@@ -12,8 +12,8 @@ fi
 
 
 docker run $@ \
- -e EMFLAVOUR=3.1.74 -e BUILDS=3.13 -e wasisdk=true \
+ -e SDKROOT=/tmp/sdk -e EMFLAVOUR=3.1.74 -e BUILDS=3.13 -e wasisdk=true \
  -v ./python-wasm-sdk:/workspace -v ./prebuilt:/workspace/prebuilt -v /tmp/fs/tmp/sdk/dist:/tmp/sdk/dist \
  --workdir=/workspace --name wasmsdk debian:12 \
- bash --noprofile --rcfile  docker_rc.sh -ci "( ./python-wasm-sdk.sh $PROMPT"
+ bash --noprofile --rcfile docker_rc.sh -ci "( ./python-wasm-sdk.sh $PROMPT"
 
