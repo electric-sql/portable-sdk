@@ -1,4 +1,5 @@
 #!/bin/bash
+
 WASI_COMMON="https://github.com/electric-sql/portable-sdk/raw/refs/heads/main/prebuilt/wasi-sdk-25.tar.xz"
 
 echo SDK prepare

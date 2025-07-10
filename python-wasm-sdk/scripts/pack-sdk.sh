@@ -19,7 +19,7 @@ tar -cpPR \
     ${SDKROOT}/devices/* \
     ${SDKROOT}/prebuilt/* \
     ${SDKROOT}/native \
-    ${SDKROOT}/bun \
+    ${SDKROOT}/wasisdk \
      > /tmp/sdk/python${PYBUILD}-${TAG}-sdk-${CIVER}.tar
 
     if lz4 -c --favor-decSpeed --best /tmp/sdk/python${PYBUILD}-${TAG}-sdk-${CIVER}.tar \

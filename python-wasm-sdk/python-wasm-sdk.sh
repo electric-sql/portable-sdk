@@ -318,10 +318,36 @@ END
             mkdir -p src build ${SDKROOT}/devices/wasisdk ${SDKROOT}/prebuilt/wasisdk
             if [ -d $PREBUILT ]
             then
+                pushd /
                 # unpack wasi sdk  (common)
                 tar xf $PREBUILT/wasi-sdk-25.tar.xz
-                # unpack wasi sdk ( binary )
-                tar xf $PREBUILT/wasi-sdk-25.0-$(arch)-linux.tar.xz
+
+                if false
+                then
+                    # unpack wasi sdk ( binary )
+                    tar xf $PREBUILT/wasi-sdk-25.0-$(arch)-linux.tar.xz
+                else
+                    [ -d $SDKROOT/wasisdk/upstream ] || exit $LINENO
+                    # use stock release binaries from bin,lib folders
+	                if [ -d $SDKROOT/wasisdk/upstream/lib ]
+	                then
+		                echo "wasi sdk $(arch) support is installed"
+	                else
+		                pushd $SDKROOT/wasisdk
+		                if arch|grep -q aarch64
+		                then
+			                wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-25/wasi-sdk-25.0-arm64-linux.tar.gz -O/tmp/sdk.tar.gz
+		                else
+			                wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-25/wasi-sdk-25.0-x86_64-linux.tar.gz -O/tmp/sdk.tar.gz
+		                fi
+		                tar xfz /tmp/sdk.tar.gz && rm /tmp/sdk.tar.gz
+		                mv wasi-sdk-25.0-*/{bin,lib} upstream/
+
+		                popd
+	                fi
+                fi
+                popd
+
             else
                 # do not source to protect env
                 ./scripts/cpython-build-wasisdk.sh
