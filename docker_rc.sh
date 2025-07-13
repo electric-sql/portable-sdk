@@ -11,8 +11,7 @@ pushd /
     then
 	    echo "wasi sdk common support is installed"
     else
-	    wget -q $WASI_COMMON -O/tmp/sdk.tar.xz
-	    tar xfP ${WORKSPACE}/prebuilt/wasi-sdk-25.tar.xz && rm ${WORKSPACE}/prebuilt/wasi-sdk-25.tar.xz
+	    tar xf ${WORKSPACE}/prebuilt/wasi-sdk-25.tar.xz
     fi
 
     if [ -d $SDKROOT/wasisdk/upstream/lib ]
@@ -30,6 +29,5 @@ pushd /
 	        mv wasi-sdk-25.0-*/{bin,lib} upstream/
 	    popd
     fi
+
 popd
-
-

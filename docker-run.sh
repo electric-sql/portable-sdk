@@ -11,7 +11,13 @@ else
 fi
 
 cp docker_rc.sh python-wasm-sdk/
-[ -d python-wasm-sdk/prebuilt ] || mv prebuilt python-wasm-sdk/
+if [ -d python-wasm-sdk/prebuilt ]
+then
+	echo prebuilt found
+else
+	mkdir python-wasm-sdk/prebuilt/
+	cp prebuilt/* python-wasm-sdk/prebuilt/
+fi
 
 docker run $@ \
  -e SDKROOT=/tmp/sdk -e EMFLAVOUR=3.1.74 -e BUILDS=3.13 -e wasisdk=true \
