@@ -14,7 +14,7 @@ else
     else
         echo "UID 0, assuming docker debian:12"
         apt-get update && apt-get --yes install build-essential clang lsb-release zlib1g-dev lzma-dev libssl-dev \
-          git wget curl lz4 xz-utils bison flex pkg-config autoconf make
+          git wget curl lz4 xz-utils bison flex pkg-config autoconf m4 libtool make
         # prevent removing any wasi prebuilt patching from docker rc file
         touch $SDKROOT/dev
         export DOCKER=true
